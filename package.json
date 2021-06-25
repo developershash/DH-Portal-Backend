@@ -1,0 +1,20 @@
+{
+  "name": "DH-Portal-Backend",
+  "version": "1.0.0",
+  "description": "This is the backend service for Developers Hash Portal",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/developershash/DH-Portal-Backend.git"
+  },
+  "keywords": [],
+  "author": "shubdev07@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/developershash/DH-Portal-Backend/issues"
+  },
+  "homepage": "https://github.com/developershash/DH-Portal-Backend#readme"
+}
