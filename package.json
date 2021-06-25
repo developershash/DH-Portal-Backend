@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/developershash/DH-Portal-Backend/issues"
   },
-  "homepage": "https://github.com/developershash/DH-Portal-Backend#readme"
+  "homepage": "https://github.com/developershash/DH-Portal-Backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.12.14"
+  }
 }

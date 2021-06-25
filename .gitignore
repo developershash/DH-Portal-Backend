@@ -1,0 +1,4 @@
+node_modules/
+Makefile
+.DS_Store
+.env
