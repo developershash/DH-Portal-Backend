@@ -1,10 +1,10 @@
-'use strict';
+const express = require('express')
+const userRouter = require('./users/users.routes')
+const postRouter = require('./posts/posts.routes')
 
-const express = require('express');
-const userRouter = require('./users/users.routes');
+const router = express()
 
-const router = express();
+router.use('/users', userRouter)
+router.use('/posts', postRouter)
 
-router.use('/users', userRouter);
-
-module.exports = router;
+module.exports = router
