@@ -1,10 +1,10 @@
 // Add JOI validation here
 const Joi = require('joi')
 
-const postSchema = Joi.object({
+const createPostValidate = Joi.object({
   htmlContent: Joi.string().required(),
-  tags: Joi.array().items(Joi.string().required()).required(),
+  tags: Joi.array().items(Joi.string().required()).max(5).required(),
   postedBy: Joi.string().required(),
 })
 
-module.exports = postSchema
+module.exports = createPostValidate
