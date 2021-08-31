@@ -43,7 +43,6 @@ const userSchema = new Schema(
     password: {
       type: String,
       trim: true,
-      lowercase: true,
       required: [true, 'password is a required field'],
     },
     gender: {
@@ -82,6 +81,7 @@ const userSchema = new Schema(
 
 userSchema.pre('save', async function (req, res, next) {
   try {
+    console.log(this.password)
     this.password = await bcrypt.hash(this.password, 10)
     next()
   } catch (err) {

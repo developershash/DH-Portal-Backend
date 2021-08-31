@@ -10,7 +10,7 @@ module.exports.test = (req, res) => {
 
 module.exports.register = async (req, res, next) => {
   try {
-    const doesExist = User.findOne({ email: req.body.email })
+    const doesExist = await User.findOne({ email: req.body.email }).lean()
     if (doesExist)
       throw createHttpError.Conflict(`${req.body.email} already exists.`)
     const user = new User(req.body)
