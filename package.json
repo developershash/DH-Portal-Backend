@@ -1,5 +1,5 @@
 {
-  "name": "DH-Portal-Backend",
+  "name": "dh-portal-backend",
   "version": "1.0.0",
   "description": "This is the backend service for Developers Hash Portal",
   "main": "index.js",
@@ -19,12 +19,15 @@
   },
   "homepage": "https://github.com/developershash/DH-Portal-Backend#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "http-errors": "^1.8.0",
     "joi": "^17.4.2",
-    "mongoose": "^5.12.14"
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.12.14",
+    "uniqid": "^5.4.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

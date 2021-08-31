@@ -1,10 +1,13 @@
-'use strict';
+const express = require('express')
+const userController = require('./users.controller')
+const {
+  createUserMiddleware,
+  loginUserMiddleware,
+} = require('./users.middleware')
 
-const express = require('express');
-const userController = require('./users.controller');
+const router = express.Router()
 
-const router = express.Router();
+router.post('/login', loginUserMiddleware, userController.login)
+router.post('/register', createUserMiddleware, userController.register)
 
-router.get('/', userController.test)
-
-module.exports = router;
+module.exports = router

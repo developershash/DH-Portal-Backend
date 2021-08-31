@@ -6,11 +6,14 @@ const app = express()
 require('./configs/express')(app)
 require('./configs/routes')(app)
 
-app.use((err, req, res) => {
-  // console.error(err.stack)
-  return res
-    .status(err.status || 500)
-    .send(err.message || 'Something went wrong')
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).send({
+    error: {
+      status: err.status || 500,
+      message: err.message || 'Something went wrong',
+    },
+  })
 })
 
 app.listen(PORT, () => {
