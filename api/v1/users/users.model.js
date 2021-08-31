@@ -81,7 +81,6 @@ const userSchema = new Schema(
 
 userSchema.pre('save', async function (req, res, next) {
   try {
-    console.log(this.password)
     this.password = await bcrypt.hash(this.password, 10)
     next()
   } catch (err) {

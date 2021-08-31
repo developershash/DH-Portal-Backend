@@ -11,6 +11,10 @@ const createUserValidate = Joi.object({
     )
     .trim()
     .min(8)
+    .messages({
+      'string.pattern.base':
+        'Password must be atleast 8 characters long, with a mix of uppercase, lowercase, number and special characters',
+    })
     .required(),
 }).options({
   stripUnknown: true,
