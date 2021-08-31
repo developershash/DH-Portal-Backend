@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
 
 const { Schema } = mongoose
 
@@ -14,7 +15,6 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       lowercase: true,
-      required: [true, 'Middle Name is a required field'],
     },
     lastName: {
       type: String,
@@ -26,7 +26,7 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       lowercase: true,
-      unique: true,
+      unique: [true, 'Email already exists'],
       required: [true, 'Email is a required field'],
     },
     username: {
@@ -64,7 +64,7 @@ const userSchema = new Schema(
     },
     isVerified: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     githubLink: {
       type: String,
@@ -74,10 +74,19 @@ const userSchema = new Schema(
     strict: true,
     runSettersOnQuery: true,
     timestamps: {
-      createdAt: 'created',
-      updatedAt: 'updated',
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt',
     },
   }
 )
+
+userSchema.pre('save', async function (req, res, next) {
+  try {
+    this.password = await bcrypt.hash(this.password, 10)
+    next()
+  } catch (err) {
+    next(err)
+  }
+})
 
 module.exports = mongoose.model('User', userSchema)
