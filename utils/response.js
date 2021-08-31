@@ -1,17 +1,17 @@
 class Response {
-  constructor(statusCode, message, payload) {
+  constructor(statusCode, message, data) {
     this.statusCode = statusCode
     this.message = message
-    this.payload = payload
+    this.data = data
   }
 
-  generate() {
+  generate(statusCode, message, data) {
     const responseObject = {
-      statusCode: this.statusCode,
-      message: this.message,
+      statusCode: statusCode || this.statusCode,
+      message: message || this.message,
     }
-    if (this.payload) {
-      responseObject.payload = this.payload
+    if (data || this.data) {
+      responseObject.data = data || this.data
     }
     return responseObject
   }
