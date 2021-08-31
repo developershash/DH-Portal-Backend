@@ -1,8 +1,5 @@
-// const mongoose = require('mongoose')
-// const createError = require('http-errors')
 const createHttpError = require('http-errors')
 const User = require('./users.model')
-// const Response = require('../../../utils/response')
 
 module.exports.test = (req, res) => {
   res.send('OK')
