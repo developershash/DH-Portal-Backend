@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken')
 const createHttpError = require('http-errors')
 const User = require('./users.model')
 const Response = require('../../../utils/response')
+const env = require('../../../configs/config')
+const eventEmitter = require('./users.events')
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -11,8 +13,20 @@ module.exports.register = async (req, res, next) => {
       throw createHttpError.Conflict(`${req.body.email} already exists.`)
     const user = new User(req.body)
     await user.save()
-    const response = new Response(201, 'User created successfully')
+
+    const response = new Response(
+      201,
+      'User created successfully. Go to your email to verify your account.'
+    )
+
     res.status(response.statusCode).json(response)
+
+    req.payload = user
+    const metadata = {
+      tasks: ['email'],
+    }
+
+    eventEmitter.emit('sendVerificationEmail', req, metadata)
   } catch (err) {
     next(err)
   }
@@ -38,7 +52,7 @@ module.exports.login = async (req, res, next) => {
       if (success) {
         const token = jwt.sign(
           { username: user.username, email: user.email },
-          process.env.TOKEN_KEY,
+          env.ACCESS_TOKEN_SECRET,
           {
             expiresIn: '2h',
           }
@@ -59,5 +73,63 @@ module.exports.login = async (req, res, next) => {
         'Internal Server Error. Please try again after some time'
       )
     )
+  }
+}
+
+module.exports.sendVerificationEmail = async (req, res) => {
+  eventEmitter.emit('sendVerificationEmail', req)
+  res
+    .status(200)
+    .send(
+      `Email verification link has been sent to your registered email id ${req.payload.email}`
+    )
+}
+
+module.exports.sendResetPasswordEmail = async (req, res) => {
+  eventEmitter.emit('sendResetPasswordEmail', req)
+  res
+    .status(200)
+    .send(
+      `Reset password link has been generated and successfully sent to your registered email id ${req.payload.email}`
+    )
+}
+
+module.exports.verifyUserEmail = async (req, res, next) => {
+  try {
+    let isValidToChangeEmail = false
+    req.payload.metadata.tasks.forEach((task) => {
+      if (task === 'email') isValidToChangeEmail = true
+    })
+
+    if (isValidToChangeEmail) {
+      // eslint-disable-next-line no-unused-vars
+      const user = await User.findOneAndUpdate(
+        { email: req.payload.email },
+        { isVerified: true },
+        { new: true }
+      )
+      res.status(200).send('Your account has been verified successfully.')
+    } else {
+      throw createHttpError.Unauthorized(
+        'Token is not valid for updating email status'
+      )
+    }
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports.updateUserPassword = async (req, res, next) => {
+  try {
+    const newPassword = await bcrypt.hash(req.body.password, 10)
+    // eslint-disable-next-line no-unused-vars
+    const user = await User.findOneAndUpdate(
+      { _id: req.payload.id },
+      { password: newPassword },
+      { new: true }
+    )
+    res.status(200).send('Password has been changed successfully.')
+  } catch (err) {
+    next(err)
   }
 }
