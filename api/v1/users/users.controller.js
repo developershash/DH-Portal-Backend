@@ -27,14 +27,8 @@ module.exports.login = async (req, res, next) => {
     if (!user) {
       return next(createHttpError.NotFound('User not found'))
     }
-    bcrypt.compare(req.body.password, user.password, (err, success) => {
-      if (err) {
-        return next(
-          createHttpError.InternalServerError(
-            'Internal Server Error. Please try again after some time'
-          )
-        )
-      }
+    try {
+      const success = await bcrypt.compare(req.body.password, user.password)
       if (success) {
         const token = jwt.sign(
           { username: user.username, email: user.email },
@@ -43,16 +37,26 @@ module.exports.login = async (req, res, next) => {
             expiresIn: '2h',
           }
         )
-        const data = {
-          token,
+        // set token in redis
+        try {
+          await global.redisClient.set(req.body.userId, token)
+          const data = {
+            token,
+          }
+          response = response.generate(200, 'Login Successful', data)
+        } catch (error) {
+          throw new Error(
+            'Internal Server Error. Please try again after some time'
+          )
         }
-        response = response.generate(200, 'Login Successful', data)
       } else {
         response = response.generate(401, 'Invalid Password')
+        return res.status(response.statusCode).json(response)
       }
       return res.status(response.statusCode).json(response)
-    })
-    return null
+    } catch (err) {
+      throw new Error('Internal Server Error. Please try again after some time')
+    }
   } catch (err) {
     return next(
       createHttpError.InternalServerError(
