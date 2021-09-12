@@ -22,11 +22,14 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
+    "ejs": "^3.1.6",
     "express": "^4.17.1",
+    "googleapis": "^85.0.0",
     "http-errors": "^1.8.0",
     "joi": "^17.4.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.12.14",
+    "nodemailer": "^6.6.3",
     "uniqid": "^5.4.0"
   },
   "devDependencies": {
