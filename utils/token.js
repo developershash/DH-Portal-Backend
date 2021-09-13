@@ -1,18 +1,20 @@
 const jwt = require('jsonwebtoken')
 const createHttpError = require('http-errors')
-const env = require('../configs/config')
+const {
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET,
+} = require('../configs/config')
 
 module.exports = {
-  signAccessToken: (user, eat, metadata) => {
+  signAccessToken: (data, eat) => {
     return new Promise((resolve, reject) => {
       const payload = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        metadata,
+        email: data.payload.email,
+        username: data.payload.username,
+        metadata: data.metadata,
       }
 
-      const secret = env.ACCESS_TOKEN_SECRET
+      const secret = ACCESS_TOKEN_SECRET
 
       const options = {
         expiresIn: eat,
@@ -34,7 +36,7 @@ module.exports = {
     const bearerToken = authHeader.split(' ')
     const token = bearerToken[1]
 
-    jwt.verify(token, env.ACCESS_TOKEN_SECRET, (err, payload) => {
+    jwt.verify(token, ACCESS_TOKEN_SECRET, (err, payload) => {
       if (err) {
         if (err.name !== 'JsonWebTokenError')
           return next(createHttpError.Unauthorized(err))
@@ -54,7 +56,7 @@ module.exports = {
         username: user.username,
       }
 
-      const secret = env.REFRESH_TOKEN_SECRET
+      const secret = REFRESH_TOKEN_SECRET
 
       const options = {
         expiresIn: '24h',
@@ -71,7 +73,7 @@ module.exports = {
   },
   verifyRefreshToken: (refreshToken) => {
     return new Promise((resolve, reject) => {
-      jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET, (err, payload) => {
+      jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, payload) => {
         if (err) return reject(createHttpError.Unauthorized())
 
         const userId = payload.aud

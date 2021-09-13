@@ -3,4 +3,3 @@ Makefile
 .DS_Store
 .env
 rest.http
-blocker.txt
