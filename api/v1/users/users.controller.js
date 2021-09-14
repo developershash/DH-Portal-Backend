@@ -64,7 +64,18 @@ module.exports.login = async (req, res, next) => {
         const data = {
           token,
         }
-
+        const userRequestInfo = {
+          username: user.username,
+          loggedOut: false,
+          lastLoggedInAt: new Date(),
+          ipAddress:
+            (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
+            req.connection.remoteAddress ||
+            req.socket.remoteAddress ||
+            req.connection.socket.remoteAddress,
+          device: req.headers['user-agent'],
+        }
+        eventEmitter.emit('userLoginHistory', userRequestInfo)
         response = response.generate(200, 'Login Successful', data)
       } else {
         response = response.generate(401, 'Invalid Password')
