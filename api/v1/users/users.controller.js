@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken')
 const createHttpError = require('http-errors')
 const User = require('./users.model')
 const Response = require('../../../utils/response')
-const env = require('../../../configs/config')
-const userEvents = require('./users.events')
+const { ACCESS_TOKEN_SECRET } = require('../../../configs/config')
+const eventEmitter = require('./users.events')
 const { logger, logGenerate } = require('../../../configs/logger')
 
 module.exports.register = async (req, res, next) => {
@@ -26,7 +26,7 @@ module.exports.register = async (req, res, next) => {
       tasks: ['email'],
     }
 
-    userEvents.emit('sendVerificationEmail', req, metadata)
+    eventEmitter.emit('sendVerificationEmail', req, metadata)
   } catch (err) {
     logger.error(err)
     next(err)
@@ -40,45 +40,47 @@ module.exports.login = async (req, res, next) => {
       $or: [{ email: req.body.userId }, { username: req.body.userId }],
     }).lean()
     if (!user) {
-      logger.info('User not found')
       return next(createHttpError.NotFound('User not found'))
     }
-    try {
-      const success = await bcrypt.compare(req.body.password, user.password)
+    bcrypt.compare(req.body.password, user.password, (err, success) => {
+      if (err) {
+        return next(
+          createHttpError.InternalServerError(
+            'Internal Server Error. Please try again after some time'
+          )
+        )
+      }
       if (success) {
         const token = jwt.sign(
           { username: user.username, email: user.email },
-          env.ACCESS_TOKEN_SECRET,
+          ACCESS_TOKEN_SECRET,
           {
             expiresIn: '2h',
           }
         )
-        // set token in redis
-        try {
-          await global.redisClient.set(req.body.userId, token)
-          const data = {
-            token,
-          }
-          response = response.generate(200, 'Login Successful', data)
-        } catch (error) {
-          logger.error(error)
-          throw new Error(
-            'Internal Server Error. Please try again after some time'
-          )
+        const data = {
+          token,
         }
+        const userRequestInfo = {
+          username: user.username,
+          loggedOut: false,
+          lastLoggedInAt: new Date(),
+          ipAddress:
+            (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
+            req.connection.remoteAddress ||
+            req.socket.remoteAddress ||
+            req.connection.socket.remoteAddress,
+          device: req.headers['user-agent'],
+        }
+        eventEmitter.emit('userLoginHistory', userRequestInfo)
+        response = response.generate(200, 'Login Successful', data)
       } else {
         response = response.generate(401, 'Invalid Password')
-        logger.info(response)
-        return res.status(response.statusCode).json(response)
       }
-      logger.info(response)
       return res.status(response.statusCode).json(response)
-    } catch (err) {
-      logger.error(err)
-      throw new Error('Internal Server Error. Please try again after some time')
-    }
+    })
+    return null
   } catch (err) {
-    logger.error(err)
     return next(
       createHttpError.InternalServerError(
         'Internal Server Error. Please try again after some time'
@@ -88,7 +90,7 @@ module.exports.login = async (req, res, next) => {
 }
 
 module.exports.sendVerificationEmail = async (req, res) => {
-  userEvents.emit('sendVerificationEmail', req)
+  eventEmitter.emit('sendVerificationEmail', req)
   res
     .status(200)
     .send(
@@ -97,7 +99,7 @@ module.exports.sendVerificationEmail = async (req, res) => {
 }
 
 module.exports.sendResetPasswordEmail = async (req, res) => {
-  userEvents.emit('sendResetPasswordEmail', req)
+  eventEmitter.emit('sendResetPasswordEmail', req)
   res
     .status(200)
     .send(
