@@ -96,11 +96,12 @@ module.exports.sendVerificationEmail = async (req, res) => {
   const resEmail = `${part1}*****.${part2}`
 
   eventEmitter.emit('sendEmailEvent', data, 'verificationEmail')
-  res
-    .status(200)
-    .send(
-      `Email verification link has been sent to your registered email id ${resEmail}`
-    )
+
+  const message = `Email verification link has been sent successfully to your registered email id ${resEmail}`
+
+  const response = new Response(200, message)
+
+  res.status(response.statusCode).json(response)
 }
 
 module.exports.sendResetPasswordEmail = async (req, res) => {
@@ -119,35 +120,37 @@ module.exports.sendResetPasswordEmail = async (req, res) => {
 
   eventEmitter.emit('sendEmailEvent', data, 'resetPasswordEmail')
 
-  res
-    .status(200)
-    .send(
-      `Reset password link has been generated and successfully sent to your registered email id ${resEmail}`
-    )
+  const message = `Reset password link has been generated and successfully sent to your registered email id ${resEmail}`
+
+  const response = new Response(200, message)
+
+  res.status(response.statusCode).json(response)
 }
 
 module.exports.verifyUserEmail = async (req, res, next) => {
   try {
-    if (!req.payload.metadata.tasks) {
+    if (
+      !(
+        req.payload.metadata.tasks &&
+        req.payload.metadata.tasks.indexOf('email') !== -1
+      )
+    ) {
       throw createHttpError.Unauthorized(
         'Token is not valid for updating email status'
       )
     }
 
-    if (req.payload.metadata.tasks.indexOf('email') === -1) {
-      throw createHttpError.Unauthorized(
-        'Token is not valid for updating email status'
-      )
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    const user = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { email: req.payload.email },
       { isVerified: true },
       { new: true }
     )
 
-    res.status(200).send('Your account has been verified successfully.')
+    const message = `Your account has been verified successfully.`
+
+    const response = new Response(200, message)
+
+    res.status(response.statusCode).json(response)
   } catch (err) {
     next(err)
   }
@@ -155,27 +158,29 @@ module.exports.verifyUserEmail = async (req, res, next) => {
 
 module.exports.updateUserPassword = async (req, res, next) => {
   try {
-    if (!req.payload.metadata.tasks) {
-      throw createHttpError.Unauthorized(
-        'Token is not valid for updating email status'
+    if (
+      !(
+        req.payload.metadata.tasks &&
+        req.payload.metadata.tasks.indexOf('passwd') !== -1
       )
-    }
-
-    if (req.payload.metadata.tasks.indexOf('passwd') === -1) {
+    ) {
       throw createHttpError.Unauthorized(
         'Token is not valid for updating reseting password'
       )
     }
 
     const newUserPassword = await bcrypt.hash(req.body.password, 10)
-    // eslint-disable-next-line no-unused-vars
-    const user = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { email: req.payload.email },
       { password: newUserPassword },
       { new: true }
     )
 
-    res.status(200).send('Password has been changed successfully.')
+    const message = `Password has been changed successfully.`
+
+    const response = new Response(200, message)
+
+    res.status(response.statusCode).json(response)
   } catch (err) {
     next(err)
   }
