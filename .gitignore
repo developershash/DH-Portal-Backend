@@ -4,3 +4,4 @@ Makefile
 .env
 rest.http
 blocker.txt
+/logs

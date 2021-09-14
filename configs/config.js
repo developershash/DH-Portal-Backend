@@ -4,7 +4,17 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
-module.exports = process.env
+const config = {
+  ...process.env,
+  LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
+  redis: {
+    host: 'localhost',
+    port: 6379,
+    db: 0,
+  },
+}
+
+module.exports = config
 
 // const {
 //   CLIENT_ID,

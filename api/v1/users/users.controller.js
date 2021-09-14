@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken')
 const createHttpError = require('http-errors')
 const User = require('./users.model')
 const Response = require('../../../utils/response')
-const env = require('../../../configs/config')
+const { ACCESS_TOKEN_SECRET } = require('../../../configs/config')
 const eventEmitter = require('./users.events')
+const { logger, logGenerate } = require('../../../configs/logger')
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -13,12 +14,11 @@ module.exports.register = async (req, res, next) => {
       throw createHttpError.Conflict(`${req.body.email} already exists.`)
     const user = new User(req.body)
     await user.save()
-
     const response = new Response(
       201,
       'User created successfully. Go to your email to verify your account.'
     )
-
+    logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
     res.status(response.statusCode).json(response)
 
     req.payload = user
@@ -28,6 +28,7 @@ module.exports.register = async (req, res, next) => {
 
     eventEmitter.emit('sendVerificationEmail', req, metadata)
   } catch (err) {
+    logger.error(err)
     next(err)
   }
 }
@@ -52,7 +53,7 @@ module.exports.login = async (req, res, next) => {
       if (success) {
         const token = jwt.sign(
           { username: user.username, email: user.email },
-          env.ACCESS_TOKEN_SECRET,
+          ACCESS_TOKEN_SECRET,
           {
             expiresIn: '2h',
           }
