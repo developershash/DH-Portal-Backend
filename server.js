@@ -1,5 +1,8 @@
 const express = require('express')
+const { createRedisClient } = require('./configs/redis')
+const configs = require('./configs/config')
 const { ENV, PORT } = require('./configs/app').CONFIGURATION
+const { logger } = require('./configs/logger')
 
 const app = express()
 
@@ -16,9 +19,13 @@ app.use((err, req, res, next) => {
   })
 })
 
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(
-    `Express server is listening on port ${PORT} in ${ENV} environment`
-  )
-})
+function boot() {
+  global.redisClient = createRedisClient(configs.redis)
+  app.listen(PORT, () => {
+    logger.info(
+      `Express server is listening on port ${PORT} in ${ENV} environment`
+    )
+  })
+}
+
+boot()

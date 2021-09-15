@@ -1,10 +1,10 @@
-/* eslint-disable no-console */
+const mongoose = require('mongoose')
+const { logger } = require('./logger')
+
 if (process.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line global-require
   require('dotenv').config()
 }
-
-const mongoose = require('mongoose')
 
 const CONFIGURATION = {
   DB_URI: process.env.DB_URI,
@@ -18,11 +18,17 @@ mongoose.connect(CONFIGURATION.DB_URI, {
   useCreateIndex: true,
   useFindAndModify: false,
 })
-mongoose.connection.once('open', () => {
-  console.log(`MongoDB connected to ${CONFIGURATION.DB_URI}`)
+// eslint-disable-next-line func-names
+mongoose.set('debug', function (collectionName, methodName, ...methodArgs) {
+  logger.info(
+    `Mongoose: ${collectionName}.${methodName}(${JSON.stringify(...methodArgs)}`
+  )
 })
-mongoose.connection.on('error', () => {
-  console.log('MongoDB Connection Error')
+mongoose.connection.once('open', () => {
+  logger.info(`MongoDB connected to ${CONFIGURATION.DB_URI}`)
+})
+mongoose.connection.on('error', (err) => {
+  logger.error(`MongoDB Connection Error ${err}`)
   process.exit(-1)
 })
 
