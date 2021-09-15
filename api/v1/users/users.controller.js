@@ -4,7 +4,7 @@ const createHttpError = require('http-errors')
 const User = require('./users.model')
 const Response = require('../../../utils/response')
 const { ACCESS_TOKEN_SECRET } = require('../../../configs/config')
-const eventEmitter = require('./users.events')
+const userEvents = require('./users.events')
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -30,7 +30,7 @@ module.exports.register = async (req, res, next) => {
       },
     }
 
-    eventEmitter.emit('sendEmailEvent', data, 'verificationEmail')
+    userEvents.emit('sendEmailEvent', data, 'verificationEmail')
   } catch (err) {
     next(err)
   }
@@ -75,7 +75,7 @@ module.exports.login = async (req, res, next) => {
             req.connection.socket.remoteAddress,
           device: req.headers['user-agent'],
         }
-        eventEmitter.emit('userLoginHistory', userRequestInfo)
+        userEvents.emit('userLoginHistory', userRequestInfo)
         response = response.generate(200, 'Login Successful', data)
       } else {
         response = response.generate(401, 'Invalid Password')
@@ -106,7 +106,7 @@ module.exports.sendVerificationEmail = async (req, res) => {
   const part2 = req.payload.email.split('.')[1]
   const resEmail = `${part1}*****.${part2}`
 
-  eventEmitter.emit('sendEmailEvent', data, 'verificationEmail')
+  userEvents.emit('sendEmailEvent', data, 'verificationEmail')
 
   const message = `Email verification link has been sent successfully to your registered email id ${resEmail}`
 
@@ -129,7 +129,7 @@ module.exports.sendResetPasswordEmail = async (req, res) => {
   const part2 = req.payload.email.split('.')[1]
   const resEmail = `${part1}*****.${part2}`
 
-  eventEmitter.emit('sendEmailEvent', data, 'resetPasswordEmail')
+  userEvents.emit('sendEmailEvent', data, 'resetPasswordEmail')
 
   const message = `Reset password link has been generated and successfully sent to your registered email id ${resEmail}`
 

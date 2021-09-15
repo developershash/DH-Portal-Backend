@@ -47,19 +47,28 @@ async function prepareDataToSendMail(data, emailType) {
   return mailOption
 }
 
-eventEmitter.on('sendEmailEvent', async (data, emailType) => {
-  const mailOption = await prepareDataToSendMail(data, emailType)
+async function tryToSendEmail(mailOption, remainingAttempt, emailType) {
+  if (remainingAttempt <= 0) return false
 
-  for (let i = 0; i < 3; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
+  try {
     const emailSendStatus = await mailer.sendEmail(mailOption)
     if (emailSendStatus.messageId) {
       // eslint-disable-next-line no-console
       console.log(`${emailType} : ${emailSendStatus.messageId}`)
-      return
+      return true
     }
+  } catch (error) {
+    console.log(error.message)
+    return tryToSendEmail(mailOption, remainingAttempt - 1, emailType)
   }
-  throw createHttpError.InternalServerError('Email was not sent.')
+  return false
+}
+
+eventEmitter.on('sendEmailEvent', async (data, emailType) => {
+  const mailOption = await prepareDataToSendMail(data, emailType)
+
+  const wasMailSent = await tryToSendEmail(mailOption, 3, emailType)
+  console.log(wasMailSent)
 })
 
 eventEmitter.on(
