@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const { logger } = require('./logger')
 
-/* eslint-disable no-console */
 if (process.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line global-require
   require('dotenv').config()
@@ -18,6 +17,12 @@ mongoose.connect(CONFIGURATION.DB_URI, {
   useUnifiedTopology: true,
   useCreateIndex: true,
   useFindAndModify: false,
+})
+// eslint-disable-next-line func-names
+mongoose.set('debug', function (collectionName, methodName, ...methodArgs) {
+  logger.info(
+    `Mongoose: ${collectionName}.${methodName}(${JSON.stringify(...methodArgs)}`
+  )
 })
 mongoose.connection.once('open', () => {
   logger.info(`MongoDB connected to ${CONFIGURATION.DB_URI}`)
