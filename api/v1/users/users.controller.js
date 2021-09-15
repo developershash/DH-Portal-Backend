@@ -5,6 +5,7 @@ const User = require('./users.model')
 const Response = require('../../../utils/response')
 const { ACCESS_TOKEN_SECRET } = require('../../../configs/config')
 const userEvents = require('./users.events')
+const { logger, logGenerate } = require('../../../configs/logger')
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -13,12 +14,11 @@ module.exports.register = async (req, res, next) => {
       throw createHttpError.Conflict(`${req.body.email} already exists.`)
     const user = new User(req.body)
     await user.save()
-
     const response = new Response(
       201,
       'User created successfully. Go to your email to verify your account.'
     )
-
+    logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
     res.status(response.statusCode).json(response)
 
     const data = {
@@ -32,6 +32,7 @@ module.exports.register = async (req, res, next) => {
 
     userEvents.emit('sendEmailEvent', data, 'verificationEmail')
   } catch (err) {
+    logger.error(err)
     next(err)
   }
 }
