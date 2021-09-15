@@ -4,4 +4,4 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
-module.exports = { ...process.env }
+module.exports = { ...process.env, emailRetryLimit: 3 }
