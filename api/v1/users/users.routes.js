@@ -11,8 +11,8 @@ const { verifyAccessToken } = require('../../../utils/token')
 
 const router = express.Router()
 
-router.post('/login', loginUserMiddleware, userController.login)
 router.post('/register', createUserMiddleware, userController.register)
+router.post('/login', loginUserMiddleware, userController.login)
 
 // ******************** sending emails *************************************
 

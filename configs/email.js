@@ -47,8 +47,8 @@ const resolveTransporter = async () => {
 module.exports.sendEmail = async (mailOption) => {
   try {
     const gmailTransporter = await resolveTransporter()
-    const status = await gmailTransporter.sendMail(mailOption)
-    return status
+    const emailSendStatus = await gmailTransporter.sendMail(mailOption)
+    return emailSendStatus
   } catch (err) {
     throw createHttpError.InternalServerError(err)
   }
