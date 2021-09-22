@@ -18,7 +18,15 @@ router.post('/login', loginUserMiddleware, userController.login)
 
 router.post(
   '/email/verification',
-  verifyAccessToken,
+  async (req, res, next) => {
+    try {
+      const payload = await verifyAccessToken(req.headers.authorization)
+      req.payload = payload
+      next()
+    } catch (err) {
+      next(err)
+    }
+  },
   userController.sendVerificationEmail
 )
 router.post(

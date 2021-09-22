@@ -25,14 +25,11 @@ module.exports.register = async (req, res, next) => {
       payload: user,
       host: req.headers.host,
       baseUrl: req.baseUrl,
-      metadata: {
-        tasks: ['email'],
-      },
+      scope: ['email'],
     }
 
     userEvents.emit('sendEmailEvent', data, 'verificationEmail')
   } catch (err) {
-    logger.error(err)
     next(err)
   }
 }
@@ -81,6 +78,7 @@ module.exports.login = async (req, res, next) => {
       } else {
         response = response.generate(401, 'Invalid Password')
       }
+      logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
       return res.status(response.statusCode).json(response)
     })
     return null
@@ -98,9 +96,7 @@ module.exports.sendVerificationEmail = async (req, res) => {
     payload: req.payload,
     host: req.headers.host,
     baseUrl: req.baseUrl,
-    metadata: {
-      tasks: ['email'],
-    },
+    scope: ['verifyEmail'],
   }
 
   const part1 = req.payload.email.slice(0, 3)
@@ -113,6 +109,7 @@ module.exports.sendVerificationEmail = async (req, res) => {
 
   const response = new Response(200, message)
 
+  logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
   res.status(response.statusCode).json(response)
 }
 
@@ -121,9 +118,7 @@ module.exports.sendResetPasswordEmail = async (req, res) => {
     payload: req.payload,
     host: req.headers.host,
     baseUrl: req.baseUrl,
-    metadata: {
-      tasks: ['passwd'],
-    },
+    scope: ['updatePasswd'],
   }
 
   const part1 = req.payload.email.slice(0, 3)
@@ -136,16 +131,14 @@ module.exports.sendResetPasswordEmail = async (req, res) => {
 
   const response = new Response(200, message)
 
+  logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
   res.status(response.statusCode).json(response)
 }
 
 module.exports.verifyUserEmail = async (req, res, next) => {
   try {
     if (
-      !(
-        req.payload.metadata.tasks &&
-        req.payload.metadata.tasks.indexOf('email') !== -1
-      )
+      !(req.payload.scope && req.payload.scope.indexOf('verifyEmail') !== -1)
     ) {
       throw createHttpError.Unauthorized(
         'Token is not valid for updating email status'
@@ -162,6 +155,7 @@ module.exports.verifyUserEmail = async (req, res, next) => {
 
     const response = new Response(200, message)
 
+    logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
     res.status(response.statusCode).json(response)
   } catch (err) {
     next(err)
@@ -171,10 +165,7 @@ module.exports.verifyUserEmail = async (req, res, next) => {
 module.exports.updateUserPassword = async (req, res, next) => {
   try {
     if (
-      !(
-        req.payload.metadata.tasks &&
-        req.payload.metadata.tasks.indexOf('passwd') !== -1
-      )
+      !(req.payload.scope && req.payload.scope.indexOf('updatePasswd') !== -1)
     ) {
       throw createHttpError.Unauthorized(
         'Token is not valid for updating reseting password'
@@ -192,6 +183,7 @@ module.exports.updateUserPassword = async (req, res, next) => {
 
     const response = new Response(200, message)
 
+    logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
     res.status(response.statusCode).json(response)
   } catch (err) {
     next(err)
