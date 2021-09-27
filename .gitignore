@@ -4,4 +4,3 @@ Makefile
 .env
 rest.http
 /logs
-

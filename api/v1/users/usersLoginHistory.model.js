@@ -35,6 +35,7 @@ const userLoginHistorySchema = new Schema(
   }
 )
 
+// eslint-disable-next-line func-names
 userLoginHistorySchema.pre('save', async function (req, res, next) {
   try {
     next()

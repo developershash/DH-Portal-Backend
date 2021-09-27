@@ -1,6 +1,7 @@
 const { google } = require('googleapis')
 const nodemailer = require('nodemailer')
-const createHttpError = require('http-errors')
+const { logger } = require('./logger')
+const Response = require('../utils/response')
 
 const {
   CLIENT_ID,
@@ -36,7 +37,12 @@ const setupTransporter = (async () => {
 
     return transporter
   } catch (err) {
-    throw createHttpError.InternalServerError(err)
+    const response = new Response(
+      err.response.status,
+      `${err.message} : ${err.response.data.error_description}`
+    )
+    logger.error(response)
+    return null
   }
 })()
 
@@ -45,11 +51,7 @@ const resolveTransporter = async () => {
 }
 
 module.exports.sendEmail = async (mailOption) => {
-  try {
-    const gmailTransporter = await resolveTransporter()
-    const emailSendStatus = await gmailTransporter.sendMail(mailOption)
-    return emailSendStatus
-  } catch (err) {
-    throw createHttpError.InternalServerError(err)
-  }
+  const gmailTransporter = await resolveTransporter()
+  const emailSendStatus = await gmailTransporter.sendMail(mailOption)
+  return emailSendStatus
 }
