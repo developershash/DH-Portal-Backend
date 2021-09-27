@@ -1,0 +1,350 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is the Swagger Documentation for DevelopersHash endpoints",
+        "version": "1.0.0",
+        "title": "DevelopersHash Portal",
+        "contact": {
+            "email": "https://github.com/developershash"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "schemes": ["http"],
+    "host": "localhost:8000",
+    "basePath": "/api/v1",
+    "paths" : {
+        "/users/register" : {
+            "post" : {
+                "summary" : "User Registration",
+                "description": "Register an user and built his account",
+                "produces": ["application/json"],
+                "consumes": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User registration object",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userReg"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User account created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request / Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/login" : {
+            "post" : {
+                "summary" : "User Login",
+                "description": "Login user to his account securely",
+                "produces": ["application/json"],
+                "consumes": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User login object",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User login successful",
+                        "schema": {
+                            "$ref": "#/definitions/loginResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/email/verification" : {
+            "post" : {
+                "summary" : "Email verification link",
+                "description": "Send the user a new email verification link",
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "authorization header",
+                        "required": true,
+                        "type": "string",
+                        "example":"Authorization : Bearer ACCESS_TOKEN"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verification link sent successfully at registered email id",
+                        "schema": {
+                            "$ref": "#/definitions/response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password/reset" : {
+            "post" : {
+                "summary" : "Update password",
+                "description": "Update user password in the database",
+                "produces": ["application/json"],
+                "consumes": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "New Password",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/findUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email with passsword reset link sent successfully at registered email id",
+                        "schema": {
+                            "$ref": "#/definitions/response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/email/verification/{token}" : {
+            "get" : {
+                "summary" : "Verify email",
+                "description": "User's email gets verified",
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token",
+                        "description": "enter access token",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified succesfully",
+                        "schema": {
+                            "$ref": "#/definitions/response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password/reset/{token}" : {
+            "put" : {
+                "summary" : "Update password",
+                "description": "Update user password in the database",
+                "produces": ["application/json"],
+                "consumes": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token",
+                        "description": "enter access token",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/findUser"
+                        }
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "new password",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/passwd"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    }, 
+    "definitions": {
+        "userReg": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                     "type": "string",
+                     "required": true,
+                     "example" : "first"
+                },
+                "middleName": {
+                    "type": "string",
+                    "example" : "middle (optional)"
+                },
+                "lastName": {
+                    "type": "string",
+                    "required": true,
+                    "example" : "last"
+                },
+                "email": {
+                    "type": "string",
+                    "required": true,
+                    "example" : "myemail@email.com"
+                },
+                "password": {
+                    "type": "string",
+                    "required": true,
+                    "example" : "mypasswd@123"
+                }
+            }
+        },
+        "userLogin": {
+            "type": "object",
+            "properties": {
+                "userId": {
+                     "type": "string",
+                     "required": true,
+                     "example" : "\"myemail@email.com\" OR \"myusername\""
+                },
+                "password": {
+                    "type": "string",
+                    "required": true,
+                    "example" : "mypasswd@123"
+                }
+            }
+        },
+        "Task": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string"
+                },
+                "assignee": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response": {
+            "type": "object",
+            "properties": {
+                "statusCode": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+
+        },
+        "loginResponse": {
+            "type": "object",
+            "properties": {
+                "statusCode": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "data" : {
+                    "type" : "object",
+                    "properties" : {
+                        "token" : {
+                            "type" : "string",
+                            "example" : "ACCESS_TOKEN"
+                        }
+                    }
+                }
+            }
+
+        },
+        "findUser" : {
+            "type":"object",
+            "properties" : {
+                "userId" : {
+                    "type" : "string",
+                    "example" : "\"myemail@email.com\" OR \"myusername\""
+                }
+            }
+        },
+        "passwd" : {
+            "type" : "object",
+            "properties" : {
+                "password" : {
+                    "type" : "string",
+                    "example" : "new_password"
+                }
+
+            }
+        },
+        "errorResponse": {
+            "type": "object",
+            "properties" : {
+                "error" : {
+                    "type" : "object",
+                    "properties": {
+                        "statusCode": {
+                            "type": "integer"
+                        },
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

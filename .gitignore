@@ -1,1 +1,6 @@
-node_modules
+node_modules/
+Makefile
+.DS_Store
+.env
+rest.http
+/logs
