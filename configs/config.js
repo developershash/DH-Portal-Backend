@@ -12,6 +12,7 @@ const config = {
     port: 6379,
     db: 0,
   },
+  emailRetryLimit: 3,
 }
 
 module.exports = config

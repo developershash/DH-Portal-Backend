@@ -1,18 +1,20 @@
 const jwt = require('jsonwebtoken')
-const createHttpError = require('http-errors')
-const env = require('../configs/config')
+const Response = require('./response')
+const {
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET,
+} = require('../configs/config')
 
 module.exports = {
-  signAccessToken: (user, eat, metadata) => {
+  signAccessToken: (data, eat) => {
     return new Promise((resolve, reject) => {
       const payload = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        metadata,
+        email: data.payload.email,
+        username: data.payload.username,
+        scope: data.scope,
       }
 
-      const secret = env.ACCESS_TOKEN_SECRET
+      const secret = ACCESS_TOKEN_SECRET
 
       const options = {
         expiresIn: eat,
@@ -21,49 +23,47 @@ module.exports = {
 
       jwt.sign(payload, secret, options, (err, token) => {
         if (err) {
-          return reject(createHttpError.InternalServerError())
+          const response = new Response(500, err)
+          return reject(response)
         }
         return resolve(token)
       })
     })
   },
-  verifyAccessToken: (req, res, next) => {
-    if (!req.headers.authorization) return next(createHttpError.Unauthorized())
-
-    const authHeader = req.headers.authorization
-    const bearerToken = authHeader.split(' ')
-    const token = bearerToken[1]
-
-    jwt.verify(token, env.ACCESS_TOKEN_SECRET, (err, payload) => {
-      if (err) {
-        if (err.name !== 'JsonWebTokenError')
-          return next(createHttpError.Unauthorized(err))
-        return next(createHttpError.Unauthorized())
-      }
-
-      req.payload = payload
-      return next()
+  verifyAccessToken: (authHeader) => {
+    return new Promise((resolve, reject) => {
+      if (!authHeader) return reject(new Response(401, 'Unauthorized Access'))
+      const bearerToken = authHeader.split(' ')
+      const token = bearerToken[1]
+      jwt.verify(token, ACCESS_TOKEN_SECRET, (err, payload) => {
+        if (err) {
+          if (err.name !== 'JsonWebTokenError')
+            return reject(new Response(401, err))
+          return reject(new Response(401, 'Unauthorized Access'))
+        }
+        return resolve(payload)
+      })
+      return null
     })
-    return null
   },
-  signRefreshToken: (user) => {
+  signRefreshToken: (data, eat) => {
     return new Promise((resolve, reject) => {
       const payload = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
+        id: data.id,
+        email: data.email,
+        username: data.username,
       }
 
-      const secret = env.REFRESH_TOKEN_SECRET
+      const secret = REFRESH_TOKEN_SECRET
 
       const options = {
-        expiresIn: '24h',
+        expiresIn: eat,
         issuer: 'developershash.com',
       }
 
       jwt.sign(payload, secret, options, (err, token) => {
         if (err) {
-          return reject(createHttpError.InternalServerError())
+          return reject(new Response(500, err))
         }
         return resolve(token)
       })
@@ -71,8 +71,8 @@ module.exports = {
   },
   verifyRefreshToken: (refreshToken) => {
     return new Promise((resolve, reject) => {
-      jwt.verify(refreshToken, env.REFRESH_TOKEN_SECRET, (err, payload) => {
-        if (err) return reject(createHttpError.Unauthorized())
+      jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, payload) => {
+        if (err) return reject(new Response(401, err))
 
         const userId = payload.aud
         return resolve(userId)
