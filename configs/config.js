@@ -13,6 +13,7 @@ const config = {
     db: process.env.REDIS_DB || 0,
   },
   emailRetryLimit: 3,
+  logDir: 'logs',
 }
 
 module.exports = config
