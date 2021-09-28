@@ -6,12 +6,10 @@ const configs = require('./config')
 // https://github.com/winstonjs/winston#logging
 // { error: 0, warn: 1, info: 2, verbose: 3, debug: 4, silly: 5 }
 
-const { logDir } = configs
+const logDir = path.join(__dirname, '../', 'logs')
 // eslint-disable-next-line no-console
 console.log({ logDir })
 if (!fs.existsSync(logDir)) {
-  // eslint-disable-next-line no-console
-  console.log('creating logs folder')
   fs.mkdirSync(logDir)
 }
 
