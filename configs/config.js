@@ -8,9 +8,9 @@ const config = {
   ...process.env,
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
   redis: {
-    host: 'localhost',
-    port: 6379,
-    db: 0,
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+    db: process.env.REDIS_DB || 0,
   },
   emailRetryLimit: 3,
 }
