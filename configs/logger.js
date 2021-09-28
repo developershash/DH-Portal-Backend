@@ -1,8 +1,15 @@
 const { createLogger, format, transports } = require('winston')
+const fs = require('fs')
+const path = require('path')
 const configs = require('./config')
 
 // https://github.com/winstonjs/winston#logging
 // { error: 0, warn: 1, info: 2, verbose: 3, debug: 4, silly: 5 }
+
+const { logDir } = configs
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir)
+}
 
 function formatParams(info) {
   //   const { timestamp, level = configs.LOG_LEVEL, message, ...args } = info
@@ -37,7 +44,16 @@ const logger = createLogger({
     process.env.NODE_ENV === 'production'
       ? productionFormat
       : developmentFormat,
-  transports: [new transports.Console()],
+  transports: [
+    new transports.Console(),
+    new transports.File({
+      filename: path.join(logDir, 'log.log'),
+      // level: 'error',
+      // handleExceptions: true,
+      maxsize: 5242880, // 5MB
+      timestamp: true,
+    }),
+  ],
 })
 
 const logGenerate = (response, method, ip, endpoint) => {
