@@ -33,25 +33,6 @@ const loginUserMiddleware = async (req, res, next) => {
   }
 }
 
-const verifyTokenMiddleware = async (req, res, next) => {
-  const accessToken = req.params.token
-
-  try {
-    jwt.verify(accessToken, ACCESS_TOKEN_SECRET, (err, payload) => {
-      if (err) {
-        if (err.name !== 'JsonWebTokenError')
-          throw createHttpError.Unauthorized(err)
-        throw createHttpError.Unauthorized()
-      }
-
-      req.payload = payload
-      next()
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
 const getUserMiddleware = async (req, res, next) => {
   try {
     const user = await User.findOne({
@@ -74,6 +55,26 @@ const getUserMiddleware = async (req, res, next) => {
   } catch (err) {
     if (err.isJoi === true) return next(createHttpError.NotFound(err.message))
     return next(err)
+  }
+}
+
+const verifyTokenMiddleware = async (req, res, next) => {
+  const accessToken = req.params.token
+
+  try {
+    jwt.verify(accessToken, ACCESS_TOKEN_SECRET, (err, payload) => {
+      if (err) {
+        if (err.name !== 'JsonWebTokenError')
+          throw createHttpError.Unauthorized(err)
+        throw createHttpError.Unauthorized()
+      }
+
+      req.payload = payload
+      req.identity = { scope: payload.scope }
+      next()
+    })
+  } catch (error) {
+    next(error)
   }
 }
 

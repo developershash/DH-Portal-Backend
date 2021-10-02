@@ -96,7 +96,7 @@ module.exports.sendVerificationEmail = async (req, res) => {
     payload: req.payload,
     host: req.headers.host,
     baseUrl: req.baseUrl,
-    scope: ['verifyEmail'],
+    scope: 'verifyEmail',
   }
 
   const part1 = req.payload.email.slice(0, 3)
@@ -118,7 +118,7 @@ module.exports.sendResetPasswordEmail = async (req, res) => {
     payload: req.payload,
     host: req.headers.host,
     baseUrl: req.baseUrl,
-    scope: ['updatePasswd'],
+    scope: 'updatePasswd',
   }
 
   const part1 = req.payload.email.slice(0, 3)
@@ -137,14 +137,6 @@ module.exports.sendResetPasswordEmail = async (req, res) => {
 
 module.exports.verifyUserEmail = async (req, res, next) => {
   try {
-    if (
-      !(req.payload.scope && req.payload.scope.indexOf('verifyEmail') !== -1)
-    ) {
-      throw createHttpError.Unauthorized(
-        'Token is not valid for updating email status'
-      )
-    }
-
     await User.findOneAndUpdate(
       { email: req.payload.email },
       { isVerified: true },
@@ -164,14 +156,6 @@ module.exports.verifyUserEmail = async (req, res, next) => {
 
 module.exports.updateUserPassword = async (req, res, next) => {
   try {
-    if (
-      !(req.payload.scope && req.payload.scope.indexOf('updatePasswd') !== -1)
-    ) {
-      throw createHttpError.Unauthorized(
-        'Token is not valid for updating reseting password'
-      )
-    }
-
     const newUserPassword = await bcrypt.hash(req.body.password, 10)
     await User.findOneAndUpdate(
       { email: req.payload.email },
