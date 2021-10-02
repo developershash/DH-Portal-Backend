@@ -1,4 +1,8 @@
 const express = require('express')
+const guard = require('express-jwt-permissions')({
+  requestProperty: 'identity',
+  permissionsProperty: 'scope',
+})
 const userController = require('./users.controller')
 const {
   createUserMiddleware,
@@ -40,11 +44,13 @@ router.post(
 router.get(
   '/email/verification/:token',
   verifyTokenMiddleware,
+  guard.check('verifyEmail'),
   userController.verifyUserEmail
 )
 router.put(
   '/password/reset/:token',
   verifyTokenMiddleware,
+  guard.check('updatePasswd'),
   passwordValidateMiddleware,
   userController.updateUserPassword
 )
