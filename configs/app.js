@@ -12,7 +12,10 @@ const CONFIGURATION = {
   PORT: process.env.PORT,
 }
 
-mongoose.connect(CONFIGURATION.DB_URI)
+mongoose.connect(CONFIGURATION.DB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
 // eslint-disable-next-line func-names
 mongoose.set('debug', function (collectionName, methodName, ...methodArgs) {
   logger.info(
