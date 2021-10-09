@@ -11,6 +11,7 @@ const postSchema = new Schema(
     tags: {
       type: Array,
       required: true,
+      index: 'text',
     },
     reactions: {
       clapped: {
