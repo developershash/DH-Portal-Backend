@@ -10,6 +10,7 @@ const {
   verifyTokenMiddleware,
   getUserMiddleware,
   passwordValidateMiddleware,
+  validateOTPMiddleware,
 } = require('./users.middleware')
 const { verifyAccessToken } = require('../../../utils/token')
 
@@ -31,7 +32,7 @@ router.post(
       next(err)
     }
   },
-  userController.sendVerificationEmail
+  userController.sendOtpToEmail
 )
 router.post(
   '/password/reset',
@@ -41,10 +42,11 @@ router.post(
 
 // ********** verifying response from emails ***************************
 
-router.get(
+router.post(
   '/email/verification/:token',
   verifyTokenMiddleware,
   guard.check('verifyEmail'),
+  validateOTPMiddleware,
   userController.verifyUserEmail
 )
 router.put(
