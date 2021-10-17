@@ -8,11 +8,7 @@ const {
 module.exports = {
   signAccessToken: (data, eat) => {
     return new Promise((resolve, reject) => {
-      const payload = {
-        email: data.payload.email,
-        username: data.payload.username,
-        scope: data.scope,
-      }
+      const payload = data
 
       const secret = ACCESS_TOKEN_SECRET
 

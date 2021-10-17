@@ -6,6 +6,7 @@ const Response = require('../../../utils/response')
 const { ACCESS_TOKEN_SECRET } = require('../../../configs/config')
 const userEvents = require('./users.events')
 const { logger, logGenerate } = require('../../../configs/logger')
+const { signAccessToken } = require('../../../utils/token')
 
 module.exports.register = async (req, res, next) => {
   try {
@@ -14,21 +15,32 @@ module.exports.register = async (req, res, next) => {
       throw createHttpError.Conflict(`${req.body.email} already exists.`)
     const user = new User(req.body)
     await user.save()
+
+    const OTP = Math.floor(100000 + Math.random() * 900000)
+    const otpHash = await bcrypt.hash(
+      `${user.email}.${OTP}.${user.username}`,
+      10
+    )
+
+    const data = {
+      email: user.email,
+      username: user.username,
+      hash: otpHash,
+      scope: 'verifyEmail',
+    }
+
+    const otpJwtToken = await signAccessToken(data, '5m')
+
     const response = new Response(
       201,
-      'User created successfully. Go to your email to verify your account.'
+      'User created successfully. One time password has been sent to your email.',
+      { token: otpJwtToken }
     )
+
     logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
     res.status(response.statusCode).json(response)
 
-    const data = {
-      payload: user,
-      host: req.headers.host,
-      baseUrl: req.baseUrl,
-      scope: ['email'],
-    }
-
-    userEvents.emit('sendEmailEvent', data, 'verificationEmail')
+    userEvents.emit('sendEmailEvent', { ...data, OTP }, 'OTPEmail')
   } catch (err) {
     next(err)
   }
@@ -91,23 +103,31 @@ module.exports.login = async (req, res, next) => {
   }
 }
 
-module.exports.sendVerificationEmail = async (req, res) => {
+module.exports.sendOtpToEmail = async (req, res) => {
+  const OTP = Math.floor(100000 + Math.random() * 900000)
+  const otpHash = await bcrypt.hash(
+    `${req.payload.email}.${OTP}.${req.payload.username}`,
+    10
+  )
+
   const data = {
-    payload: req.payload,
-    host: req.headers.host,
-    baseUrl: req.baseUrl,
+    email: req.payload.email,
+    username: req.payload.username,
+    hash: otpHash,
     scope: 'verifyEmail',
   }
+
+  const otpJwtToken = await signAccessToken(data, '5m')
 
   const part1 = req.payload.email.slice(0, 3)
   const part2 = req.payload.email.split('.')[1]
   const resEmail = `${part1}*****.${part2}`
 
-  userEvents.emit('sendEmailEvent', data, 'verificationEmail')
+  userEvents.emit('sendEmailEvent', { ...data, OTP }, 'OTPEmail')
 
   const message = `Email verification link has been sent successfully to your registered email id ${resEmail}`
 
-  const response = new Response(200, message)
+  const response = new Response(200, message, { token: otpJwtToken })
 
   logger.info(logGenerate(response, req.method, req.ip, req.originalUrl))
   res.status(response.statusCode).json(response)

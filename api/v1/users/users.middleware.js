@@ -1,5 +1,6 @@
 const uniqid = require('uniqid')
 const createHttpError = require('http-errors')
+const bcrypt = require('bcryptjs')
 const User = require('./users.model')
 const {
   createUserValidate,
@@ -64,7 +65,9 @@ const verifyTokenMiddleware = async (req, res, next) => {
   try {
     jwt.verify(accessToken, ACCESS_TOKEN_SECRET, (err, payload) => {
       if (err) {
-        if (err.name !== 'JsonWebTokenError')
+        if (err.name === 'TokenExpiredError')
+          throw createHttpError.Unauthorized('OTP is expired.')
+        else if (err.name !== 'JsonWebTokenError')
           throw createHttpError.Unauthorized(err)
         throw createHttpError.Unauthorized()
       }
@@ -72,6 +75,27 @@ const verifyTokenMiddleware = async (req, res, next) => {
       req.payload = payload
       req.identity = { scope: payload.scope }
       next()
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const validateOTPMiddleware = async (req, res, next) => {
+  try {
+    const { email, username } = req.payload
+    const OTP = parseInt(req.body.otp, 10)
+
+    const otpHash = `${email}.${OTP}.${username}`
+
+    bcrypt.compare(otpHash, req.payload.hash, (err, passed) => {
+      if (err) {
+        return next(createHttpError.Unauthorized('Invalid OTP'))
+      }
+      if (passed) {
+        return next()
+      }
+      return next(createHttpError.Unauthorized('Invalid OTP'))
     })
   } catch (error) {
     next(error)
@@ -95,4 +119,5 @@ module.exports = {
   verifyTokenMiddleware,
   getUserMiddleware,
   passwordValidateMiddleware,
+  validateOTPMiddleware,
 }

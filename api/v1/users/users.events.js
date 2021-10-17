@@ -12,37 +12,53 @@ const eventEmitter = new EventEmitter()
 
 async function prepareDataToSendMail(data, emailType) {
   try {
-    const tokenForEmail = await signAccessToken(data, '1h')
-
+    let tokenForEmail
     let emailRedirectLink
     let emailTemplate
     let subject
 
-    if (emailType === 'verificationEmail') {
-      emailRedirectLink = `http://${data.host}${data.baseUrl}/email/verification/${tokenForEmail}`
-
+    if (emailType === 'OTPEmail') {
       emailTemplate = await ejs.renderFile(
         path.join(__dirname, '../../..', 'views/email_verification.ejs'),
-        { link: emailRedirectLink }
+        { OTP: data.OTP }
       )
 
-      subject = '[DevelopersHash] Please verify your email address'
-    } else if (emailType === 'resetPasswordEmail') {
-      emailRedirectLink = `http://${data.host}${data.baseUrl}/password/reset/${tokenForEmail}`
+      subject = '[DevelopersHash] OTP for account verification'
+    } else {
+      const payload = {
+        email: data.email,
+        username: data.username,
+        scope: data.scope,
+      }
 
-      emailTemplate = await ejs.renderFile(
-        path.join(__dirname, '../../..', 'views/reset_password.ejs'),
-        { link: emailRedirectLink }
-      )
+      tokenForEmail = await signAccessToken(payload, '1h')
 
-      subject = '[DevelopersHash] Please reset your password'
+      if (emailType === 'verificationEmail') {
+        emailRedirectLink = `http://${data.host}${data.baseUrl}/email/verification/${tokenForEmail}`
+
+        emailTemplate = await ejs.renderFile(
+          path.join(__dirname, '../../..', 'views/email_verification.ejs'),
+          { link: emailRedirectLink }
+        )
+
+        subject = '[DevelopersHash] Please verify your email address'
+      } else if (emailType === 'resetPasswordEmail') {
+        emailRedirectLink = `http://${data.host}${data.baseUrl}/password/reset/${tokenForEmail}`
+
+        emailTemplate = await ejs.renderFile(
+          path.join(__dirname, '../../..', 'views/reset_password.ejs'),
+          { link: emailRedirectLink }
+        )
+
+        subject = '[DevelopersHash] Please reset your password'
+      }
     }
 
     const mailOption = {
-      to: data.payload.email,
+      to: data.email,
       from: SENDER_EMAIL,
       subject,
-      text: tokenForEmail,
+      text: tokenForEmail || `${data.OTP}`,
       html: emailTemplate,
     }
 
